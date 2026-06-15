@@ -236,7 +236,7 @@ public class Main {
                             .getResultList();
 
                         if (korZaIzmenu.isEmpty() || noviGrad.isEmpty()) {
-                            posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ili Grad ne postoje!");
+                            posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ili grad ne postoje!");
                             break;
                         }
 

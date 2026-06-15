@@ -9,5 +9,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>8</maven.compiler.release>
         <exec.mainClass>com.mycompany.klijent.Main</exec.mainClass>
+        <exec.args>-Dfile.encoding=UTF-8</exec.args>
     </properties>
 </project>

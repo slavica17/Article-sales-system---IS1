@@ -49,7 +49,9 @@ public class Main {
 
             while (true) {
                 Message msg = consumer.receive();
-                if (!(msg instanceof TextMessage)) continue;
+                if (!(msg instanceof TextMessage)) {
+                    continue;
+                }
 
                 TextMessage txtMsg = (TextMessage) msg;
                 int operacija = txtMsg.getIntProperty("operacija");
@@ -58,87 +60,76 @@ public class Main {
 
                 switch (operacija) {
 
-                   case 3: // za kreiranje korisnika iz podsistema1
+                    case 3: // za kreiranje korisnika iz podsistema1
                         try {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "OK");
-                        } catch(Exception e){}
+                        } catch (Exception e) {
+                        }
                         break;
-                    
-                    
-                    case 14: // placanje
+
+                    case 14:
+                        System.out.println("DEBUG: P3 usao u case 14 za korisnika: " + txtMsg.getStringProperty("param1"));
+
                         String kIme14 = txtMsg.getStringProperty("param1");
                         String adresaDostave14 = txtMsg.getStringProperty("param3");
                         String gradDostave14 = txtMsg.getStringProperty("param4");
 
                         try {
-                            TemporaryQueue tempQueue = context.createTemporaryQueue();
-                            JMSConsumer tempConsumer = context.createConsumer(tempQueue);
+                            String korpaCorrelationId = java.util.UUID.randomUUID().toString();
 
                             TextMessage zahtevZaKorpu = context.createTextMessage();
                             zahtevZaKorpu.setIntProperty("operacija", 19);
                             zahtevZaKorpu.setStringProperty("param1", kIme14);
-                            zahtevZaKorpu.setJMSReplyTo(tempQueue);
+                            zahtevZaKorpu.setJMSCorrelationID(korpaCorrelationId);
+
+                            System.out.println("DEBUG: P3 salje zahtev na queue2...");
                             producer.send(queue2, zahtevZaKorpu);
 
-                            Message odgovor = tempConsumer.receive(5000);
-                            tempConsumer.close();
-                            tempQueue.delete();
+                            System.out.println("DEBUG: P3 ceka odgovor od P2...");
+                            javax.jms.JMSConsumer korpaConsumer = context.createConsumer(
+                                    responseQueue, "JMSCorrelationID = '" + korpaCorrelationId + "'"
+                            );
+                            Message odgovor = korpaConsumer.receive(5000);
+                            korpaConsumer.close();
 
-                            if (odgovor == null || !(odgovor instanceof TextMessage)) {
+                            if (odgovor == null) {
+                                System.out.println("DEBUG: P3 NIJE DOBIO ODGOVOR od P2!");
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "Greska: Podsistem 2 nije odgovorio na zahtev za korpu.");
+                                        "Greska: Podsistem 2 nije odgovorio na zahtev za korpu.");
                                 break;
                             }
 
+                            System.out.println("DEBUG: P3 primio odgovor od P2.");
                             String tekstKorpe = ((TextMessage) odgovor).getText();
 
                             if (tekstKorpe.contains("prazna") || tekstKorpe.contains("nema kreiranu korpu")) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "Greska: Nemoguce izvrsiti placanje. Korpa je prazna.");
+                                        "Greska: Nemoguce izvrsiti placanje. Korpa je prazna.");
                                 break;
                             }
 
                             List<Korisnik> lokalniKorisnici = em.createQuery(
-                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                                .setParameter("ime", kIme14).getResultList();
-
-                            Korisnik kupac = null;
+                                    "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                    .setParameter("ime", kIme14).getResultList();
 
                             if (lokalniKorisnici.isEmpty()) {
-                                System.out.println("[P3 DEBUG] Korisnik " + kIme14 + " ne postoji u P3 bazi. Kreiram ga on-the-fly...");
-                                
-                                String idKorisnikaStr = txtMsg.getStringProperty("param2");
-                                
-                                if (idKorisnikaStr == null || idKorisnikaStr.isEmpty()) {
-                                    if (tekstKorpe.contains("Korisnik ID:") || tekstKorpe.contains("Korisnik:")) {
-                                       
-                                    }
-                                    idKorisnikaStr = String.valueOf(Math.abs(kIme14.hashCode() % 10000));
-                                }
-
-                                em.getTransaction().begin();
-                                kupac = new Korisnik();
-                                kupac.setKorisnickoIme(kIme14);
-                                kupac.setKorisnikId(Integer.parseInt(idKorisnikaStr));
-                                em.persist(kupac);
-                                em.getTransaction().commit();
-                                em.clear();
-                                System.out.println("[P3 DEBUG] Uspesno kreiran korisnik u hodu: " + kIme14 + " sa ID: " + idKorisnikaStr);
-                            } else {
-                                kupac = lokalniKorisnici.get(0);
+                                posaljiOdgovor(context, producer, responseQueue, txtMsg,
+                                        "Greska: Korisnik ne postoji u Podsistemu 3.");
+                                break;
                             }
+                            Korisnik kupac = lokalniKorisnici.get(0);
 
                             java.math.BigDecimal ukupnaCena = new java.math.BigDecimal("0.00");
                             try {
                                 String marker = "UKUPNA CENA KORPE: ";
                                 if (tekstKorpe.contains(marker)) {
                                     String cenaStr = tekstKorpe.substring(
-                                        tekstKorpe.indexOf(marker) + marker.length()).trim();
+                                            tekstKorpe.indexOf(marker) + marker.length()).trim();
                                     ukupnaCena = new java.math.BigDecimal(cenaStr);
                                 }
                             } catch (Exception e) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "Greska: Nije moguce parsirati ukupnu cenu korpe.");
+                                        "Greska: Nije moguce parsirati ukupnu cenu korpe.");
                                 break;
                             }
 
@@ -157,7 +148,9 @@ public class Main {
 
                             String[] linije = tekstKorpe.split("\n");
                             for (String linija : linije) {
-                                if (!linija.contains("ID:") || !linija.contains("Kolicina:")) continue;
+                                if (!linija.contains("ID:") || !linija.contains("Kolicina:")) {
+                                    continue;
+                                }
                                 try {
                                     String idDeo = linija.substring(linija.indexOf("ID:") + 3);
                                     int artikalId = Integer.parseInt(idDeo.split(",")[0].trim());
@@ -196,42 +189,40 @@ public class Main {
                             producer.send(queue2, zahtevZaPraznjenje);
 
                             posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                "Uspesno izvrseno placanje. Kreirana narudzbina ID: "
-                                + narudzbina.getNarudzbinaId() + " u iznosu od: " + ukupnaCena);
+                                    "Uspesno izvrseno placanje. Kreirana narudzbina ID: "
+                                    + narudzbina.getNarudzbinaId() + " u iznosu od: " + ukupnaCena);
 
                         } catch (Exception ex) {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-                            posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                "Greska prilikom placanja: " + ex.getMessage());
-                        } finally {
                             if (em.getTransaction().isActive()) {
                                 em.getTransaction().rollback();
                             }
+                            posaljiOdgovor(context, producer, responseQueue, txtMsg,
+                                    "Greska prilikom placanja: " + ex.getMessage());
                         }
-                        break;    
-                
+                        break;
+
                     case 21: // narudzbine korisnika
                         String kIme21 = txtMsg.getStringProperty("param1");
 
                         try {
                             List<Korisnik> korisnici21 = em.createQuery(
-                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                                .setParameter("ime", kIme21).getResultList();
+                                    "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                    .setParameter("ime", kIme21).getResultList();
 
                             if (korisnici21.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "Greska: Korisnik ne postoji.");
+                                        "Greska: Korisnik ne postoji.");
                                 break;
                             }
 
                             List<Narudzbina> narudzbine = em.createQuery(
-                                "SELECT n FROM Narudzbina n WHERE n.kupacId.korisnickoIme = :ime",
-                                Narudzbina.class)
-                                .setParameter("ime", kIme21).getResultList();
+                                    "SELECT n FROM Narudzbina n WHERE n.kupacId.korisnickoIme = :ime",
+                                    Narudzbina.class)
+                                    .setParameter("ime", kIme21).getResultList();
 
                             if (narudzbine.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "Nemate kreiranih narudzbina.");
+                                        "Nemate kreiranih narudzbina.");
                                 break;
                             }
 
@@ -239,21 +230,21 @@ public class Main {
                             sb21.append("VASE NARUDZBINE:\n");
                             for (Narudzbina n : narudzbine) {
                                 sb21.append("ID Narudzbine: ").append(n.getNarudzbinaId())
-                                    .append(", Ukupna Cena: ").append(n.getUkupnaCena())
-                                    .append(", Adresa: ").append(n.getAdresaDostave())
-                                    .append(", Grad: ").append(n.getGradDostave())
-                                    .append(", Vreme: ").append(sdf.format(n.getVremeKreiranja()))
-                                    .append("\n");
+                                        .append(", Ukupna Cena: ").append(n.getUkupnaCena())
+                                        .append(", Adresa: ").append(n.getAdresaDostave())
+                                        .append(", Grad: ").append(n.getGradDostave())
+                                        .append(", Vreme: ").append(sdf.format(n.getVremeKreiranja()))
+                                        .append("\n");
                             }
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, sb21.toString());
 
                         } catch (Exception ex) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                "Greska: " + ex.getMessage());
+                                    "Greska: " + ex.getMessage());
                         }
                         break;
 
-                    case 22: // sve narudzbine - admin
+                    case 22: // sve narudzbine 
                         String kIme22 = txtMsg.getStringProperty("param1");
 
                         try {
@@ -261,9 +252,9 @@ public class Main {
                                     "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
                                     .setParameter("ime", kIme22).getResultList();
 
-                            if (lista.isEmpty() || lista.get(0).getKorisnikId() != 1) {
+                            if (lista.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "GRESKA: Pristup odbijen. Samo administrator ima dozvolu.");
+                                        "GRESKA: Pristup odbijen. Samo registrovani korisnik ima dozvolu.");
                                 break;
                             }
 
@@ -279,21 +270,21 @@ public class Main {
                             sb22.append("SVE NARUDZBINE U SISTEMU:\n");
                             for (Narudzbina n : sveNarudzbine) {
                                 sb22.append("ID: ").append(n.getNarudzbinaId())
-                                    .append(", Kupac: ").append(n.getKupacId().getKorisnickoIme())
-                                    .append(", Cena: ").append(n.getUkupnaCena())
-                                    .append(", Adresa: ").append(n.getAdresaDostave())
-                                    .append(", Grad: ").append(n.getGradDostave())
-                                    .append(", Vreme: ").append(sdf.format(n.getVremeKreiranja()))
-                                    .append("\n");
+                                        .append(", Kupac: ").append(n.getKupacId().getKorisnickoIme())
+                                        .append(", Cena: ").append(n.getUkupnaCena())
+                                        .append(", Adresa: ").append(n.getAdresaDostave())
+                                        .append(", Grad: ").append(n.getGradDostave())
+                                        .append(", Vreme: ").append(sdf.format(n.getVremeKreiranja()))
+                                        .append("\n");
                             }
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, sb22.toString());
 
                         } catch (Exception ex) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: " + ex.getMessage());
                         }
-                        break; 
-                   
-                   case 23: // sve transakcije - admin
+                        break;
+
+                    case 23: // sve transakcije
                         String kIme23 = txtMsg.getStringProperty("param1");
 
                         try {
@@ -301,9 +292,9 @@ public class Main {
                                     "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
                                     .setParameter("ime", kIme23).getResultList();
 
-                            if (lista23.isEmpty() || lista23.get(0).getKorisnikId() != 1) {
+                            if (lista23.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg,
-                                    "GRESKA: Pristup odbijen. Samo administrator može videti sve transakcije.");
+                                        "GRESKA: Pristup odbijen. Samo registrovani korisnik može videti sve transakcije.");
                                 break;
                             }
 
@@ -319,10 +310,10 @@ public class Main {
                             sb23.append("SVE TRANSAKCIJE U SISTEMU:\n");
                             for (Transakcija t : sveTransakcije) {
                                 sb23.append("ID Transakcije: ").append(t.getTransakcijaId())
-                                    .append(", Narudžbina ID: ").append(t.getNarudzbinaId().getNarudzbinaId())
-                                    .append(", Suma: ").append(t.getSuma())
-                                    .append(", Vreme plaćanja: ").append(sdf.format(t.getVremePlacanja()))
-                                    .append("\n");
+                                        .append(", Narudžbina ID: ").append(t.getNarudzbinaId().getNarudzbinaId())
+                                        .append(", Suma: ").append(t.getSuma())
+                                        .append(", Vreme plaćanja: ").append(sdf.format(t.getVremePlacanja()))
+                                        .append("\n");
                             }
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, sb23.toString());
 

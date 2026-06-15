@@ -6,6 +6,9 @@ package com.mycompany.klijent;
 
 import java.util.Scanner;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 public class Main {
 
     private static String ulogovanKorisnik = null;
@@ -59,44 +62,91 @@ public class Main {
         System.out.println("11. Moji artikli");
         System.out.println("12. Plati");
         System.out.println("13. Moje narudzbine");
-        System.out.println("14. Sve narudzbine (admin)");
-        System.out.println("15. Sve transakcije (admin)");
+        System.out.println("14. Sve narudzbine");
+        System.out.println("15. Sve transakcije");
         System.out.println("16. Svi korisnici (admin)");
         System.out.println("17. Svi gradovi (admin)");
         System.out.println("18. Kreiraj grad (admin)");
         System.out.println("19. Kreiraj korisnika (admin)");
         System.out.println("20. Dodaj novac korisniku (admin)");
         System.out.println("21. Promeni adresu korisnika (admin)");
-        System.out.println("22. Kreiraj kategoriju (admin)");
+        System.out.println("22. Kreiraj kategoriju ");
         System.out.println("0. Odjava");
         System.out.print("Izbor: ");
 
         String izbor = scanner.nextLine();
         switch (izbor) {
-            case "1": dohvatiKategorije(); break;
-            case "2": kreirajArtikal(); break;
-            case "3": promeniCenu(); break;
-            case "4": postaviPopust(); break;
-            case "5": dodajUKorpu(); break;
-            case "6": obrisiIzKorpe(); break;
-            case "7": pregledajKorpu(); break;
-            case "8": dodajUListuZelja(); break;
-            case "9": obrisiIzListeZelja(); break;
-            case "10": pregledajListuZelja(); break;
-            case "11": mojiArtikli(); break;
-            case "12": plati(); break;
-            case "13": mojeNarudzbine(); break;
-            case "14": sveNarudzbine(); break;
-            case "15": sveTransakcije(); break;
-            case "16": sviKorisnici(); break;
-            case "17": sviGradovi(); break;
-            case "18": kreirajGrad(); break;
-            case "19": kreirajKorisnika(); break;
-            case "20": dodajNovac(); break;
-            case "21": promeniAdresu(); break;
-            case "22": kreirajKategoriju(); break;
-            case "0": odjava(); break;
-            default: System.out.println("Nepoznata opcija.");
+            case "1":
+                dohvatiKategorije();
+                break;
+            case "2":
+                kreirajArtikal();
+                break;
+            case "3":
+                promeniCenu();
+                break;
+            case "4":
+                postaviPopust();
+                break;
+            case "5":
+                dodajUKorpu();
+                break;
+            case "6":
+                obrisiIzKorpe();
+                break;
+            case "7":
+                pregledajKorpu();
+                break;
+            case "8":
+                dodajUListuZelja();
+                break;
+            case "9":
+                obrisiIzListeZelja();
+                break;
+            case "10":
+                pregledajListuZelja();
+                break;
+            case "11":
+                mojiArtikli();
+                break;
+            case "12":
+                plati();
+                break;
+            case "13":
+                mojeNarudzbine();
+                break;
+            case "14":
+                sveNarudzbine();
+                break;
+            case "15":
+                sveTransakcije();
+                break;
+            case "16":
+                sviKorisnici();
+                break;
+            case "17":
+                sviGradovi();
+                break;
+            case "18":
+                kreirajGrad();
+                break;
+            case "19":
+                kreirajKorisnika();
+                break;
+            case "20":
+                dodajNovac();
+                break;
+            case "21":
+                promeniAdresu();
+                break;
+            case "22":
+                kreirajKategoriju();
+                break;
+            case "0":
+                odjava();
+                break;
+            default:
+                System.out.println("Nepoznata opcija.");
         }
     }
 
@@ -107,8 +157,8 @@ public class Main {
         String sifra = scanner.nextLine();
 
         //String rezultat = HttpKlijent.post("/resources/korisnik/proveri?korisnik=" + kIme + "&sifra=" + sifra);
-       String rezultat = HttpKlijent.post("/korisnik/proveri?korisnik=" + kIme + "&sifra=" + sifra);
-       
+        String rezultat = HttpKlijent.post("/korisnik/proveri?korisnik=" + kIme + "&sifra=" + sifra);
+
         if (rezultat.contains("OK")) {
             ulogovanKorisnik = kIme;
             ulogovanaSifra = sifra;
@@ -141,14 +191,19 @@ public class Main {
         System.out.print("Naziv kategorije: ");
         String kategorija = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/artikal/kreiraj?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&naziv=" + naziv
-                + "&opis=" + opis
-                + "&cena=" + cena
-                + "&procenatPopusta=" + popust
-                + "&kategorija=" + kategorija);
-        System.out.println(rezultat);
+        try {
+            String rezultat = HttpKlijent.post("/artikal/kreiraj?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&naziv=" + URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString())
+                    + "&opis=" + URLEncoder.encode(opis, StandardCharsets.UTF_8.toString())
+                    + "&cena=" + URLEncoder.encode(cena, StandardCharsets.UTF_8.toString())
+                    + "&procenatPopusta=" + URLEncoder.encode(popust, StandardCharsets.UTF_8.toString())
+                    + "&kategorija=" + URLEncoder.encode(kategorija, StandardCharsets.UTF_8.toString()));
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri slanju zahteva: " + e.getMessage());
+        }
     }
 
     private static void promeniCenu() {
@@ -157,11 +212,18 @@ public class Main {
         System.out.print("Nova cena: ");
         String cena = scanner.nextLine();
 
-        String rezultat = HttpKlijent.put("/artikal/cena?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv
-                + "&cena=" + cena);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.put("/artikal/cena?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv
+                    + "&cena=" + cena);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri promene cene! ");
+        }
     }
 
     private static void postaviPopust() {
@@ -170,11 +232,18 @@ public class Main {
         System.out.print("Procenat popusta: ");
         String popust = scanner.nextLine();
 
-        String rezultat = HttpKlijent.put("/artikal/popust?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv
-                + "&popust=" + popust);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.put("/artikal/popust?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv
+                    + "&popust=" + popust);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri postavljanju popusta: " + e.getMessage());
+        }
     }
 
     private static void dodajUKorpu() {
@@ -183,11 +252,18 @@ public class Main {
         System.out.print("Kolicina: ");
         String kolicina = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/artikal/korpa?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv
-                + "&kolicina=" + kolicina);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/artikal/korpa?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv
+                    + "&kolicina=" + kolicina);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri dodavanju u korpu: " + e.getMessage());
+        }
     }
 
     private static void obrisiIzKorpe() {
@@ -196,14 +272,21 @@ public class Main {
         System.out.print("Kolicina: ");
         String kolicina = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/artikal/korpa/obrisi?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv
-                + "&kolicina=" + kolicina);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/artikal/korpa/obrisi?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv
+                    + "&kolicina=" + kolicina);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri brisanju iz korpe: " + e.getMessage());
+        }
     }
 
-   private static void pregledajKorpu() {
+    private static void pregledajKorpu() {
         String rezultat = HttpKlijent.get("/artikal/korpa/prikaz?korisnik=" + ulogovanKorisnik
                 + "&sifra=" + ulogovanaSifra);
         System.out.println(rezultat);
@@ -213,20 +296,34 @@ public class Main {
         System.out.print("Naziv artikla: ");
         String naziv = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/artikal/listaZelja?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/artikal/listaZelja?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri dodavanju u listu zelja: " + e.getMessage());
+        }
     }
 
     private static void obrisiIzListeZelja() {
         System.out.print("Naziv artikla: ");
         String naziv = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/artikal/listaZelja/obrisi?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&nazivArtikla=" + naziv);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/artikal/listaZelja/obrisi?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&nazivArtikla=" + encodedNaziv);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri birsanju iz liste zelja: " + e.getMessage());
+        }
     }
 
     private static void pregledajListuZelja() {
@@ -247,11 +344,19 @@ public class Main {
         System.out.print("Grad dostave: ");
         String grad = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/porudzbina/plati?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&adresaDostave=" + adresa
-                + "&gradDostave=" + grad);
-        System.out.println(rezultat);
+        try {
+            String encodedAdresa = URLEncoder.encode(adresa, StandardCharsets.UTF_8.toString());
+            String encodedGrad = URLEncoder.encode(grad, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/porudzbina/plati?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&adresaDostave=" + encodedAdresa
+                    + "&gradDostave=" + encodedGrad);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri placanju: " + e.getMessage());
+        }
     }
 
     private static void mojeNarudzbine() {
@@ -288,10 +393,17 @@ public class Main {
         System.out.print("Naziv grada: ");
         String naziv = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/grad?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&naziv=" + naziv);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/grad?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&naziv=" + encodedNaziv);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri kreiranju grada: " + e.getMessage());
+        }
     }
 
     private static void kreirajKorisnika() {
@@ -340,12 +452,23 @@ public class Main {
         System.out.print("Novi grad: ");
         String grad = scanner.nextLine();
 
-        String rezultat = HttpKlijent.put("/korisnik/adresa?adminKorisnik=" + ulogovanKorisnik
-                + "&adminSifra=" + ulogovanaSifra
-                + "&zaKorisnika=" + kIme
-                + "&novaAdresa=" + adresa
-                + "&noviGrad=" + grad);
-        System.out.println(rezultat);
+        try {
+            String encodedKorisnik = URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString());
+            String encodedSifra = URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString());
+            String encodedKime = URLEncoder.encode(kIme, StandardCharsets.UTF_8.toString());
+            String encodedAdresa = URLEncoder.encode(adresa, StandardCharsets.UTF_8.toString());
+            String encodedGrad = URLEncoder.encode(grad, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.put("/korisnik/adresa?adminKorisnik=" + encodedKorisnik
+                    + "&adminSifra=" + encodedSifra
+                    + "&zaKorisnika=" + encodedKime
+                    + "&novaAdresa=" + encodedAdresa
+                    + "&noviGrad=" + encodedGrad);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri promeni adrese: " + e.getMessage());
+        }
     }
 
     private static void kreirajKategoriju() {
@@ -354,10 +477,19 @@ public class Main {
         System.out.print("Naziv nadkategorije (Enter ako nema): ");
         String nadKat = scanner.nextLine();
 
-        String rezultat = HttpKlijent.post("/kategorija?korisnik=" + ulogovanKorisnik
-                + "&sifra=" + ulogovanaSifra
-                + "&naziv=" + naziv
-                + "&nadKategorija=" + nadKat);
-        System.out.println(rezultat);
+        try {
+            String encodedNaziv = URLEncoder.encode(naziv, StandardCharsets.UTF_8.toString());
+            String encodedNadKat = URLEncoder.encode(nadKat, StandardCharsets.UTF_8.toString());
+
+            String rezultat = HttpKlijent.post("/kategorija?korisnik=" + URLEncoder.encode(ulogovanKorisnik, StandardCharsets.UTF_8.toString())
+                    + "&sifra=" + URLEncoder.encode(ulogovanaSifra, StandardCharsets.UTF_8.toString())
+                    + "&naziv=" + encodedNaziv
+                    + "&nadKategorija=" + encodedNadKat);
+
+            System.out.println(rezultat);
+        } catch (Exception e) {
+            System.out.println("Greska pri kreiranju kategorije: " + e.getMessage());
+        }
     }
+
 }

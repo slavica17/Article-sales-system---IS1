@@ -1,7 +1,6 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
-
 package com.mycompany.klijent;
 
 import java.io.BufferedReader;
@@ -19,7 +18,9 @@ public class HttpKlijent {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String linija;
             while ((linija = br.readLine()) != null) {
@@ -31,36 +32,37 @@ public class HttpKlijent {
             return "Greska: " + e.getMessage();
         }
     }
-    
+
     public static String post(String putanja) {
-    try {
-        URL url = new URL(BASE_URL + putanja);
-        
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setDoOutput(true);
+        try {
+            URL url = new URL(BASE_URL + putanja);
 
-        int statusCode = conn.getResponseCode();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
 
-        if (statusCode >= 400) {
-            return "Greska: Server je vratio status " + statusCode;
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
+
+            int statusCode = conn.getResponseCode();
+
+            if (statusCode >= 400) {
+                return "Greska: Server je vratio status " + statusCode;
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            String linija;
+            while ((linija = br.readLine()) != null) {
+                sb.append(linija).append("\n");
+            }
+            br.close();
+            return sb.toString().trim();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Greska: " + e.getMessage();
         }
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        StringBuilder sb = new StringBuilder();
-        String linija;
-        while ((linija = br.readLine()) != null) {
-            sb.append(linija).append("\n");
-        }
-        br.close();
-        return sb.toString().trim();
-    } catch (Exception e) {
-        e.printStackTrace();
-        return "Greska: " + e.getMessage();
     }
-}
-    
-  
+
     public static String put(String putanja) {
         try {
             URL url = new URL(BASE_URL + putanja);
@@ -68,7 +70,9 @@ public class HttpKlijent {
             conn.setRequestMethod("PUT");
             conn.setDoOutput(true);
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            conn.setRequestProperty("Accept-Charset", "UTF-8");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String linija;
             while ((linija = br.readLine()) != null) {

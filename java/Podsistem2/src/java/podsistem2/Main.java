@@ -43,7 +43,9 @@ public class Main {
 
             while (true) {
                 Message msg = consumer.receive();
-                if (!(msg instanceof TextMessage)) continue;
+                if (!(msg instanceof TextMessage)) {
+                    continue;
+                }
 
                 TextMessage txtMsg = (TextMessage) msg;
                 int operacija = txtMsg.getIntProperty("operacija");
@@ -72,7 +74,9 @@ public class Main {
                         } catch (Exception e) {
                             System.out.println("Greska pri sinhronizaciji korisnika u Podsistemu 2: " + e.getMessage());
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -90,9 +94,9 @@ public class Main {
                                 .setParameter("ime", adminKategorija6)
                                 .getResultList();
 
-                        if (adminProvera6.isEmpty() || adminProvera6.get(0).getKorisnikId() != 1) {
-                            posaljiOdgovor(context, producer, responseQueue, txtMsg, 
-                                "GRESKA: Pristup odbijen. Samo administrator može kreirati kategorije.");
+                        if (adminProvera6.isEmpty()) {
+                            posaljiOdgovor(context, producer, responseQueue, txtMsg,
+                                    "GRESKA: Pristup odbijen. Samo registrovani korisnik može kreirati kategorije.");
                             break;
                         }
 
@@ -132,10 +136,12 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri kreiranju kategorije.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
-                        break;    
-                    
+                        break;
+
                     case 7: // kreiranje artikla
                         String prodavacIme7 = txtMsg.getStringProperty("param1");
                         String artikalNaziv7 = txtMsg.getStringProperty("param3");
@@ -145,9 +151,9 @@ public class Main {
                         String kategorijaStr7 = txtMsg.getStringProperty("param7");
 
                         List<Korisnik> prodavacLista7 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", prodavacIme7)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", prodavacIme7)
+                                .getResultList();
 
                         if (prodavacLista7.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -156,9 +162,9 @@ public class Main {
                         Korisnik prodavac7 = prodavacLista7.get(0);
 
                         List<Artikal> postojeciArtikal7 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                            .setParameter("naziv", artikalNaziv7)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                .setParameter("naziv", artikalNaziv7)
+                                .getResultList();
 
                         if (!postojeciArtikal7.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal sa tim imenom vec postoji.");
@@ -166,9 +172,9 @@ public class Main {
                         }
 
                         List<Kategorija> kategorije7 = em.createQuery(
-                            "SELECT k FROM Kategorija k WHERE k.naziv = :naziv", Kategorija.class)
-                            .setParameter("naziv", kategorijaStr7)
-                            .getResultList();
+                                "SELECT k FROM Kategorija k WHERE k.naziv = :naziv", Kategorija.class)
+                                .setParameter("naziv", kategorijaStr7)
+                                .getResultList();
 
                         if (kategorije7.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Kategorija ne postoji.");
@@ -197,7 +203,9 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri kreiranju artikla.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -207,9 +215,9 @@ public class Main {
                         String novaCenaStr8 = txtMsg.getStringProperty("param4");
 
                         List<Korisnik> korisnikCena8 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kImeCena8)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kImeCena8)
+                                .getResultList();
 
                         if (korisnikCena8.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -217,9 +225,9 @@ public class Main {
                         }
 
                         List<Artikal> artikalZaCenu8 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                            .setParameter("naziv", nazivArtCena8)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                .setParameter("naziv", nazivArtCena8)
+                                .getResultList();
 
                         if (artikalZaCenu8.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -240,7 +248,9 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri izmeni cene.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -250,9 +260,9 @@ public class Main {
                         String noviPopustStr9 = txtMsg.getStringProperty("param4");
 
                         List<Korisnik> korisnikPopust9 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kImePopust9)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kImePopust9)
+                                .getResultList();
 
                         if (korisnikPopust9.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -260,9 +270,9 @@ public class Main {
                         }
 
                         List<Artikal> artikalZaPopust9 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                            .setParameter("naziv", nazivArtPopust9)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                .setParameter("naziv", nazivArtPopust9)
+                                .getResultList();
 
                         if (artikalZaPopust9.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -283,7 +293,9 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri postavljanju popusta.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -300,9 +312,9 @@ public class Main {
                             }
 
                             List<Korisnik> korisnici10 = em.createQuery(
-                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                                .setParameter("ime", kImeKorpa10)
-                                .getResultList();
+                                    "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                    .setParameter("ime", kImeKorpa10)
+                                    .getResultList();
 
                             if (korisnici10.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -311,9 +323,9 @@ public class Main {
                             Korisnik korisnik10 = korisnici10.get(0);
 
                             List<Artikal> artikli10 = em.createQuery(
-                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                                .setParameter("naziv", nazivArtKorpa10)
-                                .getResultList();
+                                    "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                    .setParameter("naziv", nazivArtKorpa10)
+                                    .getResultList();
 
                             if (artikli10.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -322,9 +334,9 @@ public class Main {
                             Artikal artikal10 = artikli10.get(0);
 
                             List<Korpa> korpe10 = em.createQuery(
-                                "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
-                                .setParameter("korisnik", korisnik10)
-                                .getResultList();
+                                    "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
+                                    .setParameter("korisnik", korisnik10)
+                                    .getResultList();
 
                             if (korpe10.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik nema korpu.");
@@ -333,12 +345,14 @@ public class Main {
                             Korpa korpa10 = korpe10.get(0);
 
                             java.math.BigDecimal popust10 = artikal10.getProcenatPopusta();
-                            if (popust10 == null) popust10 = java.math.BigDecimal.ZERO;
+                            if (popust10 == null) {
+                                popust10 = java.math.BigDecimal.ZERO;
+                            }
 
                             java.math.BigDecimal cenaSaPopustom10 = artikal10.getCena();
                             if (popust10.compareTo(java.math.BigDecimal.ZERO) > 0) {
                                 java.math.BigDecimal faktor10 = java.math.BigDecimal.ONE.subtract(
-                                    popust10.divide(new java.math.BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP));
+                                        popust10.divide(new java.math.BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP));
                                 cenaSaPopustom10 = artikal10.getCena().multiply(faktor10);
                             }
 
@@ -347,10 +361,10 @@ public class Main {
                             em.getTransaction().begin();
 
                             List<Stavkakorpe> postojeceStavke10 = em.createQuery(
-                                "SELECT s FROM Stavkakorpe s WHERE s.korpaId = :korpa AND s.artikalId = :artikal", Stavkakorpe.class)
-                                .setParameter("korpa", korpa10)
-                                .setParameter("artikal", artikal10)
-                                .getResultList();
+                                    "SELECT s FROM Stavkakorpe s WHERE s.korpaId = :korpa AND s.artikalId = :artikal", Stavkakorpe.class)
+                                    .setParameter("korpa", korpa10)
+                                    .setParameter("artikal", artikal10)
+                                    .getResultList();
 
                             if (!postojeceStavke10.isEmpty()) {
                                 Stavkakorpe stavka10 = postojeceStavke10.get(0);
@@ -372,7 +386,9 @@ public class Main {
                         } catch (NumberFormatException e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Nevalidan format kolicine.");
                         } catch (Exception e) {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri dodavanju u korpu.");
                         }
                         break;
@@ -390,9 +406,9 @@ public class Main {
                             }
 
                             List<Korisnik> korisniciBrisanje11 = em.createQuery(
-                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                                .setParameter("ime", kImeObrisi11)
-                                .getResultList();
+                                    "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                    .setParameter("ime", kImeObrisi11)
+                                    .getResultList();
 
                             if (korisniciBrisanje11.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -401,9 +417,9 @@ public class Main {
                             Korisnik korisnikBrisanje11 = korisniciBrisanje11.get(0);
 
                             List<Artikal> artikliBrisanje11 = em.createQuery(
-                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                                .setParameter("naziv", nazivArtObrisi11)
-                                .getResultList();
+                                    "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                    .setParameter("naziv", nazivArtObrisi11)
+                                    .getResultList();
 
                             if (artikliBrisanje11.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -412,9 +428,9 @@ public class Main {
                             Artikal artikalBr11 = artikliBrisanje11.get(0);
 
                             List<Korpa> korpeBrisanje11 = em.createQuery(
-                                "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
-                                .setParameter("korisnik", korisnikBrisanje11)
-                                .getResultList();
+                                    "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
+                                    .setParameter("korisnik", korisnikBrisanje11)
+                                    .getResultList();
 
                             if (korpeBrisanje11.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik nema korpu.");
@@ -423,10 +439,10 @@ public class Main {
                             Korpa korpaBr11 = korpeBrisanje11.get(0);
 
                             List<Stavkakorpe> stavke11 = em.createQuery(
-                                "SELECT s FROM Stavkakorpe s WHERE s.korpaId = :korpa AND s.artikalId = :artikal", Stavkakorpe.class)
-                                .setParameter("korpa", korpaBr11)
-                                .setParameter("artikal", artikalBr11)
-                                .getResultList();
+                                    "SELECT s FROM Stavkakorpe s WHERE s.korpaId = :korpa AND s.artikalId = :artikal", Stavkakorpe.class)
+                                    .setParameter("korpa", korpaBr11)
+                                    .setParameter("artikal", artikalBr11)
+                                    .getResultList();
 
                             if (stavke11.isEmpty()) {
                                 posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal se ne nalazi u korpi.");
@@ -435,12 +451,14 @@ public class Main {
                             Stavkakorpe stavka11 = stavke11.get(0);
 
                             java.math.BigDecimal popustBr11 = artikalBr11.getProcenatPopusta();
-                            if (popustBr11 == null) popustBr11 = java.math.BigDecimal.ZERO;
+                            if (popustBr11 == null) {
+                                popustBr11 = java.math.BigDecimal.ZERO;
+                            }
 
                             java.math.BigDecimal jedinicnaCena11 = artikalBr11.getCena();
                             if (popustBr11.compareTo(java.math.BigDecimal.ZERO) > 0) {
                                 java.math.BigDecimal faktor11 = java.math.BigDecimal.ONE.subtract(
-                                    popustBr11.divide(new java.math.BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP));
+                                        popustBr11.divide(new java.math.BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP));
                                 jedinicnaCena11 = artikalBr11.getCena().multiply(faktor11);
                             }
 
@@ -469,7 +487,9 @@ public class Main {
                         } catch (NumberFormatException e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Nevalidan format kolicine.");
                         } catch (Exception e) {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri brisanju iz korpe.");
                         }
                         break;
@@ -479,9 +499,9 @@ public class Main {
                         String nazivArtLista12 = txtMsg.getStringProperty("param3");
 
                         List<Korisnik> korisniciLZ12 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kImeLista12)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kImeLista12)
+                                .getResultList();
 
                         if (korisniciLZ12.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -490,9 +510,9 @@ public class Main {
                         Korisnik korisnikLZ12 = korisniciLZ12.get(0);
 
                         List<Artikal> artikliLZ12 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                            .setParameter("naziv", nazivArtLista12)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                .setParameter("naziv", nazivArtLista12)
+                                .getResultList();
 
                         if (artikliLZ12.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -501,10 +521,10 @@ public class Main {
                         Artikal artikalLZ12 = artikliLZ12.get(0);
 
                         List<Listazelja> postojecaZelja12 = em.createQuery(
-                            "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik AND l.artikalId = :artikal", Listazelja.class)
-                            .setParameter("korisnik", korisnikLZ12)
-                            .setParameter("artikal", artikalLZ12)
-                            .getResultList();
+                                "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik AND l.artikalId = :artikal", Listazelja.class)
+                                .setParameter("korisnik", korisnikLZ12)
+                                .setParameter("artikal", artikalLZ12)
+                                .getResultList();
 
                         if (!postojecaZelja12.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Artikal vec postoji u listi zelja.");
@@ -523,7 +543,9 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri dodavanju u listu zelja.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -532,9 +554,9 @@ public class Main {
                         String nazivArtBrisZelja13 = txtMsg.getStringProperty("param3");
 
                         List<Korisnik> korisniciBLZ13 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kImeBrisZelja13)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kImeBrisZelja13)
+                                .getResultList();
 
                         if (korisniciBLZ13.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -543,9 +565,9 @@ public class Main {
                         Korisnik korisnikBLZ13 = korisniciBLZ13.get(0);
 
                         List<Artikal> artikliBLZ13 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
-                            .setParameter("naziv", nazivArtBrisZelja13)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.naziv = :naziv", Artikal.class)
+                                .setParameter("naziv", nazivArtBrisZelja13)
+                                .getResultList();
 
                         if (artikliBLZ13.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal ne postoji.");
@@ -554,10 +576,10 @@ public class Main {
                         Artikal artikalBLZ13 = artikliBLZ13.get(0);
 
                         List<Listazelja> zelje13 = em.createQuery(
-                            "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik AND l.artikalId = :artikal", Listazelja.class)
-                            .setParameter("korisnik", korisnikBLZ13)
-                            .setParameter("artikal", artikalBLZ13)
-                            .getResultList();
+                                "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik AND l.artikalId = :artikal", Listazelja.class)
+                                .setParameter("korisnik", korisnikBLZ13)
+                                .setParameter("artikal", artikalBLZ13)
+                                .getResultList();
 
                         if (zelje13.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Artikal se ne nalazi u listi zelja.");
@@ -572,7 +594,9 @@ public class Main {
                         } catch (Exception e) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska pri brisanju iz liste zelja.");
                         } finally {
-                            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                            if (em.getTransaction().isActive()) {
+                                em.getTransaction().rollback();
+                            }
                         }
                         break;
 
@@ -580,9 +604,9 @@ public class Main {
                         String kIme17 = txtMsg.getStringProperty("param1");
 
                         List<Korisnik> korisnici17 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kIme17)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kIme17)
+                                .getResultList();
 
                         if (korisnici17.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -590,14 +614,14 @@ public class Main {
                         }
 
                         List<Kategorija> sveKategorije17 = em.createQuery(
-                            "SELECT k FROM Kategorija k", Kategorija.class).getResultList();
+                                "SELECT k FROM Kategorija k", Kategorija.class).getResultList();
                         StringBuilder sbKat17 = new StringBuilder();
 
                         for (Kategorija k : sveKategorije17) {
                             sbKat17.append("ID: ").append(k.getKategorijaId())
-                                .append(", Naziv: ").append(k.getNaziv())
-                                .append(", Nadkategorija: ").append(k.getNadkategorijaId() != null ? k.getNadkategorijaId().getNaziv() : "Nema")
-                                .append("\n");
+                                    .append(", Naziv: ").append(k.getNaziv())
+                                    .append(", Nadkategorija: ").append(k.getNadkategorijaId() != null ? k.getNadkategorijaId().getNaziv() : "Nema")
+                                    .append("\n");
                         }
 
                         if (sbKat17.length() == 0) {
@@ -611,9 +635,9 @@ public class Main {
                         String kIme18 = txtMsg.getStringProperty("param1");
 
                         List<Korisnik> korisnici18 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kIme18)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kIme18)
+                                .getResultList();
 
                         if (korisnici18.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -622,18 +646,18 @@ public class Main {
                         Korisnik korisnikPR18 = korisnici18.get(0);
 
                         List<Artikal> mojiArtikli18 = em.createQuery(
-                            "SELECT a FROM Artikal a WHERE a.korisnikId = :korisnik", Artikal.class)
-                            .setParameter("korisnik", korisnikPR18)
-                            .getResultList();
+                                "SELECT a FROM Artikal a WHERE a.korisnikId = :korisnik", Artikal.class)
+                                .setParameter("korisnik", korisnikPR18)
+                                .getResultList();
 
                         StringBuilder sbMoji18 = new StringBuilder();
                         for (Artikal a : mojiArtikli18) {
                             sbMoji18.append("ID: ").append(a.getArtikalId())
-                                .append(", Naziv: ").append(a.getNaziv())
-                                .append(", Cena: ").append(a.getCena())
-                                .append(", Popust: ").append(a.getProcenatPopusta()).append("%")
-                                .append(", Kategorija: ").append(a.getKategorijaId().getNaziv())
-                                .append("\n");
+                                    .append(", Naziv: ").append(a.getNaziv())
+                                    .append(", Cena: ").append(a.getCena())
+                                    .append(", Popust: ").append(a.getProcenatPopusta()).append("%")
+                                    .append(", Kategorija: ").append(a.getKategorijaId().getNaziv())
+                                    .append("\n");
                         }
 
                         if (sbMoji18.length() == 0) {
@@ -687,19 +711,19 @@ public class Main {
                                     .append(", Cena:").append(s.getCenaStavke())
                                     .append("\n");
                         }
-                        sbKorpa19.append(" UKUPNA CENA KORPE: ").append(korpaK19.getUkupnaCena());
+                        sbKorpa19.append("\nUKUPNA CENA KORPE: ").append(korpaK19.getUkupnaCena());
 
                         posaljiOdgovor(context, producer, responseQueue, txtMsg, sbKorpa19.toString());
-                       
-                        break;    
-                   
+                        
+                        break;
+
                     case 20: // sadrzaj liste zelja
                         String kIme20 = txtMsg.getStringProperty("param1");
 
                         List<Korisnik> korisnici20 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kIme20)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kIme20)
+                                .getResultList();
 
                         if (korisnici20.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Greska: Korisnik ne postoji ili pogresna sifra.");
@@ -708,9 +732,9 @@ public class Main {
                         Korisnik korisnikL20 = korisnici20.get(0);
 
                         List<Listazelja> mojeZelje20 = em.createQuery(
-                            "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik", Listazelja.class)
-                            .setParameter("korisnik", korisnikL20)
-                            .getResultList();
+                                "SELECT l FROM Listazelja l WHERE l.korisnikId = :korisnik", Listazelja.class)
+                                .setParameter("korisnik", korisnikL20)
+                                .getResultList();
 
                         if (mojeZelje20.isEmpty()) {
                             posaljiOdgovor(context, producer, responseQueue, txtMsg, "Vasa lista zelja je prazna.");
@@ -721,9 +745,9 @@ public class Main {
                         sbZelje20.append(" VASA LISTA ZELJA \n");
                         for (Listazelja l : mojeZelje20) {
                             sbZelje20.append("- ").append(l.getArtikalId().getNaziv())
-                                .append(" (Cena: ").append(l.getArtikalId().getCena())
-                                .append(", Kategorija: ").append(l.getArtikalId().getKategorijaId().getNaziv())
-                                .append(")\n");
+                                    .append(" (Cena: ").append(l.getArtikalId().getCena())
+                                    .append(", Kategorija: ").append(l.getArtikalId().getKategorijaId().getNaziv())
+                                    .append(")\n");
                         }
                         posaljiOdgovor(context, producer, responseQueue, txtMsg, sbZelje20.toString());
                         break;
@@ -732,27 +756,27 @@ public class Main {
                         String kImePrazni24 = txtMsg.getStringProperty("param1");
 
                         List<Korisnik> korisniciP24 = em.createQuery(
-                            "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
-                            .setParameter("ime", kImePrazni24)
-                            .getResultList();
+                                "SELECT k FROM Korisnik k WHERE k.korisnickoIme = :ime", Korisnik.class)
+                                .setParameter("ime", kImePrazni24)
+                                .getResultList();
 
                         if (!korisniciP24.isEmpty()) {
                             Korisnik kor24 = korisniciP24.get(0);
                             List<Korpa> korpeP24 = em.createQuery(
-                                "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
-                                .setParameter("korisnik", kor24)
-                                .getResultList();
+                                    "SELECT k FROM Korpa k WHERE k.korisnikId = :korisnik", Korpa.class)
+                                    .setParameter("korisnik", kor24)
+                                    .getResultList();
 
                             if (!korpeP24.isEmpty()) {
                                 Korpa k24 = korpeP24.get(0);
                                 try {
                                     em.getTransaction().begin();
                                     em.createQuery("DELETE FROM Stavkakorpe s WHERE s.korpaId = :korpa")
-                                        .setParameter("korpa", k24).executeUpdate();
+                                            .setParameter("korpa", k24).executeUpdate();
                                     k24.setUkupnaCena(java.math.BigDecimal.ZERO);
                                     em.getTransaction().commit();
                                 } catch (Exception e) {
-                                    
+
                                 } finally {
                                     if (em.getTransaction().isActive()) {
                                         em.getTransaction().rollback();
@@ -775,10 +799,10 @@ public class Main {
     }
 
     private static void posaljiOdgovor(JMSContext context, JMSProducer producer,
-        Queue responseQueue, TextMessage zahtev, String tekst) throws Exception {
-            TextMessage odg = context.createTextMessage(tekst);
-            odg.setJMSCorrelationID(zahtev.getJMSCorrelationID());
-            producer.send(responseQueue, odg);
+            Queue responseQueue, TextMessage zahtev, String tekst) throws Exception {
+        TextMessage odg = context.createTextMessage(tekst);
+        odg.setJMSCorrelationID(zahtev.getJMSCorrelationID());
+        producer.send(responseQueue, odg);
     }
-    
+
 }
